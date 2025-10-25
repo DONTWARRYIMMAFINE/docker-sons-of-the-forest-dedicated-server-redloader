@@ -10,22 +10,22 @@ RUN ln -snf /usr/share/zoneinfo/$TIMEZONE /etc/localtime \
     && echo $TIMEZONE > /etc/timezone \
     && dpkg --add-architecture i386 \
     && apt-get update \
-    && apt-get install -y --no-install-recommends --no-install-suggests software-properties-common apt-transport-https gnupg2 wget procps winbind xvfb \
+    && apt-get install -y --no-install-recommends --no-install-suggests software-properties-common apt-transport-https gnupg2 wget procps winbind xvfb unzip \
     && mkdir -pm755 /etc/apt/keyrings \
     && wget --output-document /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key \
     && wget --timestamping --directory-prefix=/etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/debian/dists/bookworm/winehq-bookworm.sources \
     && apt-get update \
     && apt-get install -y --no-install-recommends --no-install-suggests winehq-stable \
-    && apt-get remove -y --purge software-properties-common apt-transport-https gnupg2 wget \
+    && apt-get remove -y --purge software-properties-common apt-transport-https gnupg2 \
     && apt-get clean \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 FROM wine-base AS gameserver
 
-LABEL maintainer="Sebastian Schmidt - https://github.com/jammsen/docker-sons-of-the-forest-dedicated-server"
-LABEL org.opencontainers.image.authors="Sebastian Schmidt"
-LABEL org.opencontainers.image.source="https://github.com/jammsen/docker-sons-of-the-forest-dedicated-server"
+LABEL maintainer="Ulas Kastsiukovich - https://github.com/dontworryimmafine/docker-sons-of-the-forest-dedicated-server-redloader"
+LABEL org.opencontainers.image.authors="Sebastian Schmidt, Ulas Kastsiukovich"
+LABEL org.opencontainers.image.source="https://github.com/dontworryimmafine/docker-sons-of-the-forest-dedicated-server-redloader"
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -40,6 +40,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     WINEARCH=win64 \
     WINEPREFIX="/winedata/WINE64" \
     DISPLAY=:1.0 \
+    WINEDLLOVERRIDES="version=n,b" \
     # Container-settings
     TIMEZONE=Europe/Berlin \
     PUID=1000 \
@@ -48,8 +49,11 @@ ENV DEBIAN_FRONTEND=noninteractive \
     # SteamCMD-settings
     ALWAYS_UPDATE_ON_START=true \
     # Gameserver-start-settings-overrides
-    SKIP_NETWORK_ACCESSIBILITY_TEST=true
-    
+    SKIP_NETWORK_ACCESSIBILITY_TEST=true \
+    # RedLoader-settings
+    ENABLE_REDLOADER=true \
+    REDLOADER_VERSION="0.7.3"
+
 
 VOLUME ["${GAME_PATH}"]
 

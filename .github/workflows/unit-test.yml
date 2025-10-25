@@ -46,7 +46,7 @@ jobs:
       - name: Run server
         run: |
             docker run -d \
-            --name sons-of-the-forest-dedicated-server \
+            --name sons-of-the-forest-dedicated-server-redloader \
             -p 8766:8766/udp \
             -p 27016:27016/udp \
             -p 9700:9700/udp \
@@ -72,14 +72,14 @@ jobs:
             # Track last log position to avoid duplicate output
             LAST_LOG_LINES=0
             
-            while ! docker logs sons-of-the-forest-dedicated-server 2>&1 | grep -q "#DSL Dedicated server loaded."; do
+            while ! docker logs sons-of-the-forest-dedicated-server-redloader 2>&1 | grep -q "#DSL Dedicated server loaded."; do
               CURRENT_TIME=$(date +%s)
               ELAPSED_TIME=$((CURRENT_TIME - START_TIME))
             
               if [ $ELAPSED_TIME -gt $TIMEOUT_SECONDS ]; then
                 echo "Timeout reached. Server failed to start within $TIMEOUT_SECONDS seconds."
                 es "*****Final Container LOGS*****"
-                docker logs sons-of-the-forest-dedicated-server
+                docker logs sons-of-the-forest-dedicated-server-redloader
                 exit 1
               fi
             
@@ -87,11 +87,11 @@ jobs:
               ew ">>> $(date '+%H:%M:%S') - Waiting for server to start... (${ELAPSED_TIME}s elapsed)"
               
               # Get current log lines count and show new logs if any
-              CURRENT_LOG_LINES=$(docker logs sons-of-the-forest-dedicated-server 2>&1 | wc -l)
+              CURRENT_LOG_LINES=$(docker logs sons-of-the-forest-dedicated-server-redloader 2>&1 | wc -l)
               if [ $CURRENT_LOG_LINES -gt $LAST_LOG_LINES ]; then
                 es ">>> Recent container logs"
                 es "╭─────────────────────────────────────────────────────────────────────────────────────────────────────╮"
-                docker logs sons-of-the-forest-dedicated-server 2>&1 | tail -n +$((LAST_LOG_LINES + 1)) | head -n $((CURRENT_LOG_LINES - LAST_LOG_LINES))
+                docker logs sons-of-the-forest-dedicated-server-redloader 2>&1 | tail -n +$((LAST_LOG_LINES + 1)) | head -n $((CURRENT_LOG_LINES - LAST_LOG_LINES))
                 es "╰─────────────────────────────────────────────────────────────────────────────────────────────────────╯"
                 LAST_LOG_LINES=$CURRENT_LOG_LINES
               fi
@@ -102,7 +102,7 @@ jobs:
             
             echo "Server successfully started in $ELAPSED_TIME seconds"
             es "*****Final Container LOGS*****"
-            docker logs sons-of-the-forest-dedicated-server
+            docker logs sons-of-the-forest-dedicated-server-redloader
 
       - name: Test if port 8766, 27015 and 27016 are listening
         run: |
@@ -113,6 +113,6 @@ jobs:
       - name: Stop server
         if: always()
         run: |
-            docker stop sons-of-the-forest-dedicated-server
-            docker rm sons-of-the-forest-dedicated-server
+            docker stop sons-of-the-forest-dedicated-server-redloader
+            docker rm sons-of-the-forest-dedicated-server-redloader
             docker rmi ${{ github.run_id }}

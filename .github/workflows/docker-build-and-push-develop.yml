@@ -33,4 +33,4 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           push: true
-          tags: jammsen/sons-of-the-forest-dedicated-server:develop
+          tags: dontworryimmafine/sons-of-the-forest-dedicated-server-redloader:develop

@@ -51,11 +51,59 @@ function startVirtualScreenAndRebootWine() {
     wineboot -r
 }
 
+function installRedLoader() {
+    cd "$GAME_PATH" || return 1
+    if [ ! -d "_Redloader" ]; then
+        ei ">>> Downloading and unpacking $REDLOADER_VERSION RedLoader"
+
+        if wget -qO RedLoader.zip "https://github.com/ToniMacaroni/RedLoader/releases/download/$REDLOADER_VERSION/RedLoader.zip" && \
+           unzip -qo RedLoader.zip && \
+           rm RedLoader.zip; then
+            ei ">>> RedLoader installed successfully"
+            cd .. || return 1
+        else
+            ee ">>> RedLoader installation failed"
+            # Clean up partial files
+            rm -f RedLoader.zip
+        fi
+    else
+      ei ">>> RedLoader is already installed"
+    fi
+    cd .. || return 1
+}
+
+function uninstallRedLoader() {
+    cd "$GAME_PATH" || return 1
+    ei ">>> Uninstalling RedLoader"
+
+    # Remove RedLoader files and directories
+    local files_to_remove=("dobby.dll" "version.dll" "doorstop_config.ini")
+    local dirs_to_remove=("_RedLoader" "Mods")
+
+    for file in "${files_to_remove[@]}"; do
+        if [ -f "$file" ]; then
+            rm -f "$file"
+            ei ">>> Removed file: $file"
+        fi
+    done
+
+    for dir in "${dirs_to_remove[@]}"; do
+        if [ -d "$dir" ]; then
+            rm -rf "$dir"
+            ei ">>> Removed directory: $dir"
+        fi
+    done
+
+    cd .. || return 1
+    ei ">>> RedLoader uninstallation completed"
+    cd .. || return 1
+}
+
 function installServer() {
     RANDOM_NUMBER=$RANDOM
     # force a fresh install of all
     ei ">>> Doing a fresh install of the gameserver"
-    ei "> Setting server-name to jammsen-docker-generated-$RANDOM_NUMBER"
+    ei "> Setting server-name to dontworryimmafine-docker-generated-$RANDOM_NUMBER"
 
     isWineinBashRcExistent
     mkdir -p "$GAME_USERDATA_PATH"
@@ -139,6 +187,11 @@ function startMain() {
         # shellcheck disable=SC2086
         sed -E -i 's/"SkipNetworkAccessibilityTest":\s*(false|true)/"SkipNetworkAccessibilityTest": '$SKIP_NETWORK_ACCESSIBILITY_TEST'/' "$GAME_CONFIGFILE_PATH"
     fi
+    if [[ ${ENABLE_REDLOADER} == true ]]; then
+        installRedLoader
+    else
+        uninstallRedLoader
+    fi
     startServer
 }
 
@@ -157,6 +210,8 @@ do
     e "> ALWAYS_UPDATE_ON_START is set to: $ALWAYS_UPDATE_ON_START"
     e "> SKIP_NETWORK_ACCESSIBILITY_TEST is set to: $SKIP_NETWORK_ACCESSIBILITY_TEST"
     e "> FILTER_SHADER_AND_MESH_AND_WINE_DEBUG is set to: $FILTER_SHADER_AND_MESH_AND_WINE_DEBUG"
+    e "> ENABLE_REDLOADER is set to: $ENABLE_REDLOADER"
+    e "> REDLOADER_VERSION is set to: $REDLOADER_VERSION"
 
     startMain &
     START_MAIN_PID="$!"
